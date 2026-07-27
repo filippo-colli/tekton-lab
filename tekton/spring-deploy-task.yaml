@@ -1,0 +1,36 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: spring-deploy-task
+spec:
+  params:
+    - name: IMAGE
+      type: string
+
+  workspaces:
+    - name: source
+
+  steps:
+    - name: deploy
+      image: bitnami/kubectl:latest
+      workingDir: $(workspaces.source.path)
+      script: |
+        #!/bin/sh
+        set -ex
+
+        echo "Applico manifest Kubernetes"
+
+        kubectl apply -f k8s/
+
+        echo "Aggiorno immagine deployment"
+
+        kubectl set image deployment/tekton-demo-app \
+          tekton-demo-app=$(params.IMAGE)
+
+        echo "Aspetto rollout"
+
+        kubectl rollout status deployment/tekton-demo-app
+
+        echo "Stato deployment"
+
+        kubectl get pods

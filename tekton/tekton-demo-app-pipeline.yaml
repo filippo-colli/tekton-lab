@@ -1,0 +1,91 @@
+apiVersion: tekton.dev/v1
+kind: Pipeline
+
+metadata:
+  name: tekton-demo-app-pipeline
+
+spec:
+
+  params:
+
+    - name: repo-url
+      type: string
+
+    - name: image
+      type: string
+
+  workspaces:
+
+    - name: shared-workspace
+
+
+  tasks:
+
+    - name: clone
+      taskRef:
+        name: git-clone-task
+
+      params:
+
+        - name: repo-url
+          value: $(params.repo-url)
+
+      workspaces:
+
+        - name: shared-workspace
+          workspace: shared-workspace
+
+
+    - name: maven-build
+
+      runAfter:
+
+        - clone
+
+      taskRef:
+        name: spring-maven-build-task
+
+      workspaces:
+
+        - name: source
+          workspace: shared-workspace
+
+
+    - name: kaniko-build
+
+      runAfter:
+
+        - maven-build
+
+      taskRef:
+        name: spring-kaniko-build-task
+
+      params:
+
+        - name: IMAGE
+          value: $(params.image)
+
+      workspaces:
+
+        - name: source
+          workspace: shared-workspace
+
+
+    - name: deploy
+
+      runAfter:
+
+        - kaniko-build
+
+      taskRef:
+        name: spring-deploy-task
+
+      params:
+
+        - name: IMAGE
+          value: $(params.image)
+
+      workspaces:
+
+        - name: source
+          workspace: shared-workspace
