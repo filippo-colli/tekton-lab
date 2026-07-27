@@ -9,6 +9,9 @@ spec:
   pipelineRef:
     name: tekton-demo-app-pipeline
 
+  taskRunTemplate:
+    serviceAccountName: spring-deployer
+
   params:
 
     - name: repo-url
