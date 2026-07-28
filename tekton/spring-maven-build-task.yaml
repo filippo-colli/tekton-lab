@@ -2,6 +2,7 @@ apiVersion: tekton.dev/v1
 kind: Task
 metadata:
   name: spring-maven-build-task
+  namespace: default
 
 spec:
   workspaces:
@@ -9,15 +10,27 @@ spec:
 
   steps:
     - name: build
-      image: eclipse-temurin:21-jdk
+      image: maven:3.9.11-eclipse-temurin-21
       workingDir: $(workspaces.source.path)
+
+      env:
+        - name: SONAR_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: sonarqube-token
+              key: token
+
       script: |
         #!/bin/sh
-        set -ex
+        set -e
 
         chmod +x ./mvnw
 
-        ./mvnw clean package -DskipTests
+        ./mvnw clean verify sonar:sonar \
+          -DskipTests \
+          -Dsonar.host.url=http://sonarqube-sonarqube.sonarqube.svc.cluster.local:9000 \
+          -Dsonar.token=$SONAR_TOKEN
 
-        echo "Build completata"
+        echo "Build e analisi SonarQube completate"
+
         ls -la target

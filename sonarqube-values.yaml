@@ -1,0 +1,22 @@
+community:
+  enabled: true
+
+resources:
+  requests:
+    memory: 2Gi
+    cpu: 500m
+  limits:
+    memory: 4Gi
+    cpu: 2
+
+persistence:
+  enabled: true
+  size: 5Gi
+
+service:
+  type: NodePort
+
+postgresql:
+  enabled: true
+
+monitoringPasscode: "sonarqube-monitoring-pass"

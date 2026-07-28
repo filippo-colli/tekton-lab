@@ -51,14 +51,14 @@ spec:
           workspace: shared-workspace
 
 
-    - name: kaniko-build
+    - name: buildah-build
 
       runAfter:
 
         - maven-build
 
       taskRef:
-        name: spring-kaniko-build-task
+        name: spring-buildah-build-task
 
       params:
 
@@ -75,7 +75,7 @@ spec:
 
       runAfter:
 
-        - kaniko-build
+        - buildah-build
 
       taskRef:
         name: spring-deploy-task

@@ -1,0 +1,71 @@
+apiVersion: tekton.dev/v1
+kind: Task
+
+metadata:
+  name: spring-buildah-build-task
+  namespace: default
+
+spec:
+
+  params:
+    - name: IMAGE
+      type: string
+
+  workspaces:
+    - name: source
+
+  steps:
+
+    - name: build-and-push
+
+      image: quay.io/buildah/stable
+
+      securityContext:
+        privileged: true
+
+      workingDir: $(workspaces.source.path)
+
+      env:
+        - name: DOCKER_CONFIG
+          value: /tekton/home/.docker
+
+      script: |
+        #!/bin/sh
+        set -ex
+
+        echo "================================="
+        echo "Build immagine con Buildah"
+        echo "================================="
+
+        buildah bud \
+          -f Dockerfile \
+          -t $(params.IMAGE) .
+
+        echo "================================="
+        echo "Push immagine Docker Hub"
+        echo "================================="
+
+        buildah push \
+          $(params.IMAGE)
+
+        echo "================================="
+        echo "Buildah completato"
+        echo "================================="
+
+      volumeMounts:
+
+        - name: docker-config
+          mountPath: /tekton/home/.docker
+
+
+  volumes:
+
+    - name: docker-config
+
+      secret:
+        secretName: dockerhub-secret
+
+        items:
+
+          - key: .dockerconfigjson
+            path: config.json
