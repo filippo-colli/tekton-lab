@@ -1,0 +1,72 @@
+apiVersion: tekton.dev/v1
+kind: Task
+
+metadata:
+  name: git-push-task
+  namespace: default
+
+spec:
+
+  params:
+
+    - name: commit-message
+      type: string
+      default: "Update image version"
+
+
+  workspaces:
+
+    - name: shared-workspace
+
+
+  steps:
+
+    - name: commit-push
+
+      image: alpine/git:v2.45.2
+
+      env:
+
+        - name: GIT_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: github-secret
+              key: username
+
+        - name: GIT_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: github-secret
+              key: token
+
+
+      script: |
+        #!/bin/sh
+        set -e
+
+        cd $(workspaces.shared-workspace.path)
+
+        echo "Configuro Git"
+
+        git config --global user.email "tekton@example.com"
+        git config --global user.name "Tekton Pipeline"
+
+
+        echo "Aggiungo modifiche"
+
+        git status
+
+        git add k8s/
+
+
+        echo "Creo commit"
+
+        git commit -m "$(params.commit-message)" || echo "Nothing to commit"
+
+
+        echo "Push su GitHub"
+
+        git push https://${GIT_USERNAME}:${GIT_TOKEN}@github.com/filippo-colli/tekton-lab.git HEAD:main
+
+
+        echo "Push completato"

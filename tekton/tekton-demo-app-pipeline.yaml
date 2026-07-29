@@ -3,6 +3,8 @@ kind: Pipeline
 
 metadata:
   name: tekton-demo-app-pipeline
+  namespace: default
+
 
 spec:
 
@@ -11,81 +13,205 @@ spec:
     - name: repo-url
       type: string
 
+
     - name: image
       type: string
+
+
+    - name: image-version
+      type: string
+
+
 
   workspaces:
 
     - name: shared-workspace
 
 
+
   tasks:
 
+
     - name: clone
+
       taskRef:
+
         name: git-clone-task
+
 
       params:
 
         - name: repo-url
+
           value: $(params.repo-url)
+
 
       workspaces:
 
         - name: shared-workspace
+
           workspace: shared-workspace
+
+
+
+
+    - name: update-version
+
+      runAfter:
+
+        - clone
+
+
+      taskRef:
+
+        name: update-image-version-task
+
+
+      params:
+
+        - name: image
+
+          value: $(params.image)
+
+
+        - name: image-version
+
+          value: $(params.image-version)
+
+
+      workspaces:
+
+        - name: shared-workspace
+
+          workspace: shared-workspace
+
+
+
 
 
     - name: maven-build
 
       runAfter:
 
-        - clone
+        - update-version
+
 
       taskRef:
+
         name: spring-maven-build-task
+
 
       workspaces:
 
         - name: source
+
           workspace: shared-workspace
+
+
+
+
+
+    - name: sonarqube-analysis
+
+      runAfter:
+
+        - maven-build
+
+
+      taskRef:
+
+        name: sonarqube-analysis-task
+
+
+      workspaces:
+
+        - name: source
+
+          workspace: shared-workspace
+
+
+
 
 
     - name: buildah-build
 
       runAfter:
 
-        - maven-build
+        - sonarqube-analysis
+
 
       taskRef:
+
         name: spring-buildah-build-task
+
 
       params:
 
         - name: IMAGE
-          value: $(params.image)
+
+          value: $(params.image):$(params.image-version)
+
 
       workspaces:
 
         - name: source
+
           workspace: shared-workspace
+
+
+
+
+
+    - name: git-push
+
+      runAfter:
+
+        - buildah-build
+
+
+      taskRef:
+
+        name: git-push-task
+
+
+      params:
+
+        - name: commit-message
+
+          value: "Update image version $(params.image-version)"
+
+
+      workspaces:
+
+        - name: shared-workspace
+
+          workspace: shared-workspace
+
+
+
 
 
     - name: deploy
 
       runAfter:
 
-        - buildah-build
+        - git-push
+
 
       taskRef:
+
         name: spring-deploy-task
+
 
       params:
 
         - name: IMAGE
-          value: $(params.image)
+
+          value: $(params.image):$(params.image-version)
+
 
       workspaces:
 
         - name: source
+
           workspace: shared-workspace

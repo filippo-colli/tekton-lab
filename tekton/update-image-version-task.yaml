@@ -1,0 +1,56 @@
+apiVersion: tekton.dev/v1
+kind: Task
+
+metadata:
+  name: update-image-version-task
+  namespace: default
+
+spec:
+
+  params:
+
+    - name: image
+      type: string
+
+    - name: image-version
+      type: string
+
+
+  workspaces:
+
+    - name: shared-workspace
+
+
+  steps:
+
+    - name: update-image
+
+      image: alpine:3.19
+
+      workingDir: $(workspaces.shared-workspace.path)
+
+      script: |
+        #!/bin/sh
+
+        set -e
+
+
+        echo "Aggiorno immagine"
+
+        IMAGE="$(params.image):$(params.image-version)"
+
+        echo "Nuova immagine: $IMAGE"
+
+
+        if [ ! -f k8s/deployment.yaml ]; then
+          echo "ERRORE: k8s/deployment.yaml non trovato"
+          exit 1
+        fi
+
+
+        sed -i "s|image:.*|image: $IMAGE|g" k8s/deployment.yaml
+
+
+        echo "Nuovo deployment.yaml"
+
+        cat k8s/deployment.yaml
