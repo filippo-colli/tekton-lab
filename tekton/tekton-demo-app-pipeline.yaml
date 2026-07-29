@@ -54,12 +54,31 @@ spec:
 
 
 
+    - name: update-snapshot-version
+
+      runAfter:
+
+        - clone
+
+
+      taskRef:
+
+        name: update-snapshot-version-task
+
+
+      workspaces:
+
+        - name: source
+
+          workspace: shared-workspace
+
+
 
     - name: update-version
 
       runAfter:
 
-        - clone
+        - update-snapshot-version
 
 
       taskRef:
