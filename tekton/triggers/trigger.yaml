@@ -1,0 +1,16 @@
+apiVersion: triggers.tekton.dev/v1beta1
+kind: Trigger
+
+metadata:
+  name: tekton-demo-app-trigger
+  namespace: default
+
+spec:
+
+  bindings:
+
+    - ref: github-binding
+
+  template:
+
+    ref: tekton-demo-app-template

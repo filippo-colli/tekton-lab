@@ -1,0 +1,50 @@
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerTemplate
+
+metadata:
+  name: tekton-demo-app-template
+  namespace: default
+
+spec:
+
+  params:
+
+    - name: repo-url
+
+  resourcetemplates:
+
+    - apiVersion: tekton.dev/v1
+      kind: PipelineRun
+
+      metadata:
+        generateName: tekton-demo-app-run-
+
+      spec:
+
+        pipelineRef:
+          name: tekton-demo-app-pipeline
+
+        taskRunTemplate:
+          serviceAccountName: spring-deployer
+
+        params:
+
+          - name: repo-url
+            value: $(tt.params.repo-url)
+
+          - name: image
+            value: filicolli/tekton-demo-app-test
+
+        workspaces:
+
+          - name: shared-workspace
+
+            volumeClaimTemplate:
+
+              spec:
+                accessModes:
+                  - ReadWriteOnce
+
+                resources:
+                  requests:
+                    storage: 1Gi
