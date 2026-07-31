@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: tekton-demo-app
-          image: filicolli/tekton-demo-app-test:0.0.4
+          image: filicolli/tekton-demo-app-test:0.0.5
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
