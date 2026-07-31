@@ -14,7 +14,7 @@
 
     <groupId>it.fcolli.demo</groupId>
     <artifactId>tekton-demo-app</artifactId>
-    <version>0.0.7-SNAPSHOT</version>
+    <version>0.0.8-SNAPSHOT</version>
 
     <name>tekton-demo-app</name>
     <description>Demo application for Tekton CI/CD</description>
