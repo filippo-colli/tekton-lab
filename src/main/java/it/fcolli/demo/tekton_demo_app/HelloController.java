@@ -13,7 +13,7 @@ public class HelloController {
 
         return Map.of(
             "message",
-            "Hello DevOps"
+            "Hello DevOps 2!!!"
         );
     }
 }
