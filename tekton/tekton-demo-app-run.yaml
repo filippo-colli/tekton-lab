@@ -3,6 +3,7 @@ kind: PipelineRun
 
 metadata:
   name: tekton-demo-app-run-001
+  namespace: default
 
 spec:
 
@@ -18,17 +19,21 @@ spec:
       value: https://github.com/filippo-colli/tekton-lab.git
 
     - name: image
-      value: filicolli/tekton-demo-app:1.0
+      value: filicolli/tekton-demo-app-test
+
 
   workspaces:
 
     - name: shared-workspace
+
       volumeClaimTemplate:
 
         spec:
+
           accessModes:
             - ReadWriteOnce
 
           resources:
+
             requests:
               storage: 1Gi

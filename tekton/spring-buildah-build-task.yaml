@@ -31,29 +31,43 @@ spec:
 
       script: |
         #!/bin/sh
-        set -ex
+        set -eux
 
         echo "================================="
-        echo "Build immagine con Buildah"
+        echo "Contenuto workspace"
+        echo "================================="
+
+        ls -la
+        ls -la target || true
+
+        echo "================================="
+        echo "Build immagine"
         echo "================================="
 
         buildah bud \
+          --format docker \
           -f Dockerfile \
           -t $(params.IMAGE) .
 
         echo "================================="
-        echo "Push immagine Docker Hub"
+        echo "Login Docker config"
+        echo "================================="
+
+        cat /tekton/home/.docker/config.json
+
+        echo "================================="
+        echo "Push immagine"
         echo "================================="
 
         buildah push \
-          $(params.IMAGE)
+          $(params.IMAGE) \
+          docker://$(params.IMAGE)
 
         echo "================================="
         echo "Buildah completato"
         echo "================================="
 
       volumeMounts:
-
         - name: docker-config
           mountPath: /tekton/home/.docker
 
@@ -66,6 +80,5 @@ spec:
         secretName: dockerhub-secret
 
         items:
-
           - key: .dockerconfigjson
             path: config.json

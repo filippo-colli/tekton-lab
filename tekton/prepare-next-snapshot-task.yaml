@@ -1,0 +1,46 @@
+apiVersion: tekton.dev/v1
+kind: Task
+
+metadata:
+  name: prepare-next-snapshot-task
+  namespace: default
+
+spec:
+  workspaces:
+    - name: source
+
+  steps:
+    - name: next-snapshot
+
+      image: maven:3.9.11-eclipse-temurin-21
+
+      workingDir: $(workspaces.source.path)
+
+      script: |
+        #!/bin/sh
+        set -e
+
+        chmod +x ./mvnw
+
+        CURRENT_VERSION=$(./mvnw help:evaluate \
+          -Dexpression=project.version \
+          -q \
+          -DforceStdout)
+
+        echo "Current release: $CURRENT_VERSION"
+
+        MAJOR=$(echo "$CURRENT_VERSION" | cut -d. -f1)
+        MINOR=$(echo "$CURRENT_VERSION" | cut -d. -f2)
+        PATCH=$(echo "$CURRENT_VERSION" | cut -d. -f3)
+
+        NEXT_PATCH=$((PATCH + 1))
+
+        NEXT_VERSION="${MAJOR}.${MINOR}.${NEXT_PATCH}-SNAPSHOT"
+
+        echo "Next snapshot: $NEXT_VERSION"
+
+        ./mvnw versions:set \
+          -DnewVersion=$NEXT_VERSION \
+          -DgenerateBackupPoms=false
+
+        grep "<version>" pom.xml

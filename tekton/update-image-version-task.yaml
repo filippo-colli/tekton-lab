@@ -7,14 +7,25 @@ metadata:
 
 spec:
 
+  params:
+
+    - name: IMAGE
+      type: string
+
+    - name: VERSION
+      type: string
+
+
   workspaces:
+
     - name: source
+
 
   steps:
 
     - name: update-image
 
-      image: maven:3.9.11-eclipse-temurin-21
+      image: alpine:3.20
 
       workingDir: $(workspaces.source.path)
 
@@ -22,48 +33,25 @@ spec:
         #!/bin/sh
         set -e
 
+
         echo "================================="
         echo "Aggiornamento immagine Kubernetes"
         echo "================================="
 
 
-        chmod +x ./mvnw
+        FULL_IMAGE="$(params.IMAGE):$(params.VERSION)"
 
 
-        IMAGE=$(./mvnw help:evaluate \
-          -Dexpression=docker.image \
-          -q \
-          -DforceStdout 2>/dev/null | grep -E '^[a-zA-Z0-9._/-]+$' | tail -1)
-
-
-        VERSION=$(./mvnw help:evaluate \
-          -Dexpression=project.version \
-          -q \
-          -DforceStdout 2>/dev/null | grep -E '^[0-9]+\.[0-9]+\.[0-9]+.*' | tail -1)
-
-
-        if [ -z "$IMAGE" ]; then
-          echo "ERRORE: immagine Docker non trovata"
-          exit 1
-        fi
-
-
-        if [ -z "$VERSION" ]; then
-          echo "ERRORE: versione Maven non trovata"
-          exit 1
-        fi
-
-
-        FULL_IMAGE="${IMAGE}:${VERSION}"
-
-
-        echo "Immagine finale:"
+        echo "Nuova immagine:"
         echo "$FULL_IMAGE"
 
 
         if [ ! -f k8s/deployment.yaml ]; then
-          echo "ERRORE deployment.yaml non trovato"
+
+          echo "deployment.yaml non trovato"
+
           exit 1
+
         fi
 
 
@@ -71,7 +59,7 @@ spec:
 
 
         echo "================================="
-        echo "deployment.yaml aggiornato"
+        echo "Risultato"
         echo "================================="
 
 

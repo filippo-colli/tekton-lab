@@ -1,0 +1,47 @@
+apiVersion: tekton.dev/v1
+kind: Task
+
+metadata:
+  name: prepare-release-version-task
+  namespace: default
+
+spec:
+  results:
+    - name: version
+      description: Release version
+      type: string
+
+  workspaces:
+    - name: source
+
+  steps:
+    - name: prepare-release
+
+      image: maven:3.9.11-eclipse-temurin-21
+
+      workingDir: $(workspaces.source.path)
+
+      script: |
+        #!/bin/sh
+        set -e
+
+        chmod +x ./mvnw
+
+        CURRENT_VERSION=$(./mvnw help:evaluate \
+          -Dexpression=project.version \
+          -q \
+          -DforceStdout)
+
+        echo "Current version: $CURRENT_VERSION"
+
+        RELEASE_VERSION=$(echo "$CURRENT_VERSION" | sed 's/-SNAPSHOT//')
+
+        echo "Release version: $RELEASE_VERSION"
+
+        ./mvnw versions:set \
+          -DnewVersion=$RELEASE_VERSION \
+          -DgenerateBackupPoms=false
+
+        echo -n "$RELEASE_VERSION" > $(results.version.path)
+
+        grep "<version>" pom.xml

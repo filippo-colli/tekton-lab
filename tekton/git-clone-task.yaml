@@ -1,10 +1,14 @@
 apiVersion: tekton.dev/v1
 kind: Task
+
 metadata:
-  name: git-clone
+  name: git-clone-task
+  namespace: default
+
 spec:
+
   params:
-    - name: url
+    - name: repo-url
       type: string
 
   workspaces:
@@ -12,8 +16,19 @@ spec:
 
   steps:
     - name: clone
-      image: alpine/git:v2.43.0
+
+      image: alpine/git:2.43.0
+
       script: |
         #!/bin/sh
+        set -e
+
+        echo "Cleaning workspace..."
         rm -rf $(workspaces.output.path)/*
-        git clone $(params.url) $(workspaces.output.path)
+
+        echo "Cloning repository..."
+        git clone $(params.repo-url) $(workspaces.output.path)
+
+        echo "Repository cloned."
+
+        ls -la $(workspaces.output.path)

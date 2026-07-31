@@ -21,9 +21,6 @@ spec:
     - name: image
       value: filicolli/tekton-demo-app-test
 
-    - name: image-version
-      value: "2.0"
-
 
   workspaces:
 
